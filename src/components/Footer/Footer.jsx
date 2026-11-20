@@ -1,98 +1,111 @@
-import { companyInfo, navLinks } from "../../data/content";
-import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import { companyInfo } from "../../data/content";
+import { divisions, servicesByDivision } from "../../data/services";
+import { categories } from "../../data/caseStudies";
+import Icon from "../Icon";
 
-const Footer = () => {
-  const currentYear = new Date().getFullYear();
+const Col = ({ title, children }) => (
+  <div>
+    <h2 className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-slate-500">{title}</h2>
+    <ul className="space-y-2.5 text-[14px]">{children}</ul>
+  </div>
+);
+const FLink = ({ to, children }) => (
+  <li>
+    <Link to={to} className="text-slate-300 transition-colors hover:text-primary-soft">
+      {children}
+    </Link>
+  </li>
+);
 
+export default function Footer() {
+  const year = new Date().getFullYear();
   return (
-    <footer className="bg-secondary text-slate-300 border-t border-white/10">
-      <div className="container-custom py-14">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <img src="/logo-circle.png" alt="Nexapro Technologies" className="logo-circle h-14 w-14" />
-              <div>
-                <p className="text-white font-semibold">Nexapro</p>
-                <p className="text-primary text-[10px] uppercase tracking-[0.28em]">technologies</p>
-              </div>
-            </div>
-            <p className="text-slate-400 mb-2">{companyInfo.tagline}</p>
-            <p className="text-slate-500 text-sm leading-relaxed">{companyInfo.subtitle}</p>
-            <p className="text-primary/80 text-xs tracking-wide mt-3">
-              Secure, reliable infrastructure is our quality standard on every engagement.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="text-white text-lg mb-4">Services</h4>
-            <ul className="space-y-2 text-sm text-slate-400">
-              <li>AI / ML &amp; mobile (6+ years)</li>
-              <li>Mainframe, AS/400 &amp; COBOL (10+ years)</li>
-              <li>Legacy maintenance &amp; integration</li>
-              <li>React, Node.js &amp; custom websites</li>
-              <li>WordPress &amp; Shopify ecommerce</li>
-              <li>Custom business websites</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white text-lg mb-4">Navigate</h4>
-            <ul className="space-y-2">
-              {navLinks.map((link) => (
-                <li key={link.name}>
-                  <a href={link.href} className="hover:text-accent transition-colors duration-300">
-                    {link.name}
-                  </a>
-                </li>
+    <footer className="relative border-t border-line bg-[#04070D]">
+      <div className="wrap pt-16">
+        <div className="grid gap-12 pb-14 lg:grid-cols-[1.3fr_2.7fr]">
+          <div className="max-w-sm">
+            <Link to="/" className="flex items-center gap-3">
+              <img src="/logo-circle.png" alt="NexaPro Technologies" width="48" height="48" className="h-12 w-12 rounded-full" loading="lazy" />
+              <span className="font-display text-xl text-white">
+                Nexa<span className="text-primary">Pro</span> Technologies
+              </span>
+            </Link>
+            <p className="mt-5 text-[14px] leading-relaxed text-slate-400">{companyInfo.description}</p>
+            <p className="mt-5 font-display text-[15px] text-white">{companyInfo.tagline}</p>
+            <div className="mt-6 flex gap-2">
+              {[
+                [companyInfo.linkedin, "linkedin", "LinkedIn"],
+                [companyInfo.github, "github", "GitHub"],
+                [`mailto:${companyInfo.email}`, "mail", "Email"],
+              ].map(([href, icon, label]) => (
+                <a
+                  key={label}
+                  href={href}
+                  target={href.startsWith("http") ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="grid h-10 w-10 place-items-center rounded-md border border-line text-slate-300 transition hover:border-primary hover:text-primary"
+                >
+                  <Icon name={icon} />
+                </a>
               ))}
-            </ul>
+            </div>
           </div>
 
-          <div>
-            <h4 className="text-white text-lg mb-4">Contact</h4>
-            <div className="space-y-2 text-slate-400">
-              <p>
-                <a href={`mailto:${companyInfo.email}`} className="hover:text-accent transition-colors duration-300">
+          <div className="grid grid-cols-2 gap-10 md:grid-cols-[1fr_1fr_0.9fr_1.25fr]">
+            <Col title={divisions.legacy.short}>
+              {servicesByDivision("legacy").map((s) => (
+                <FLink key={s.slug} to={`/services/${s.slug}`}>{s.title}</FLink>
+              ))}
+            </Col>
+            <Col title={divisions.modern.short}>
+              {servicesByDivision("modern").map((s) => (
+                <FLink key={s.slug} to={`/services/${s.slug}`}>{s.title}</FLink>
+              ))}
+            </Col>
+            <Col title="Company">
+              <FLink to="/about">About Us</FLink>
+              <FLink to="/case-studies">Case Studies</FLink>
+              <FLink to="/industries">Industries</FLink>
+              <FLink to="/careers">Careers</FLink>
+              <FLink to="/contact">Contact Us</FLink>
+              <FLink to="/get-a-quote">Get a Free Quote</FLink>
+              <li className="pt-3 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-500">Case study areas</li>
+              {categories.slice(0, 3).map((c) => (
+                <FLink key={c.key} to={`/case-studies?category=${c.key}`}>{c.label}</FLink>
+              ))}
+            </Col>
+            <Col title="Contact">
+              <li>
+                <a href={`mailto:${companyInfo.email}`} className="text-[13.5px] text-slate-300 [overflow-wrap:anywhere] hover:text-primary-soft">
                   {companyInfo.email}
                 </a>
-              </p>
-              <p>{companyInfo.phone}</p>
-              <p>{companyInfo.location}</p>
-            </div>
-            <div className="flex gap-4 mt-6">
-              <a
-                href={companyInfo.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-accent transition-colors duration-300"
-                aria-label="LinkedIn"
-              >
-                <FaLinkedin size={22} />
-              </a>
-              <a
-                href={companyInfo.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-accent transition-colors duration-300"
-                aria-label="GitHub"
-              >
-                <FaGithub size={22} />
-              </a>
-              <a href={`mailto:${companyInfo.email}`} className="hover:text-accent" aria-label="Email">
-                <FaEnvelope size={22} />
-              </a>
-            </div>
+              </li>
+              <li>
+                <a href={`tel:${companyInfo.phoneHref}`} className="text-slate-300 hover:text-primary-soft">
+                  {companyInfo.phone}
+                </a>
+              </li>
+              <li className="text-slate-400">{companyInfo.location}</li>
+              <li className="pt-3">
+                <Link to="/get-a-quote" className="link-arrow">
+                  Free consultation <Icon name="arrow" />
+                </Link>
+              </li>
+            </Col>
           </div>
         </div>
 
-        <div className="border-t border-white/10 mt-10 pt-6 text-center text-slate-500 text-sm">
-          <p>
-            &copy; {currentYear} {companyInfo.name}. All rights reserved.
-          </p>
+        <div className="flex flex-col gap-3 border-t border-line py-6 text-[13px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {year} {companyInfo.name}. All rights reserved.</p>
+          <div className="flex gap-5">
+            <Link to="/privacy-policy" className="hover:text-slate-300">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-slate-300">Terms of Use</Link>
+            <Link to="/sitemap" className="hover:text-slate-300">Sitemap</Link>
+          </div>
         </div>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}

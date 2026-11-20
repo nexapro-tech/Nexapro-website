@@ -4,19 +4,61 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo-circle.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nexapro Technologies | Enterprise & Digital Delivery</title>
+    <meta name="theme-color" content="#060A12" />
+    <title>NexaPro Technologies | Legacy Mainframe &amp; Modern Software Development</title>
     <meta
       name="description"
-      content="Nexapro Technologies: 6+ years in AI/ML and mobile apps; 10+ years in mainframe, AS/400, and COBOL; full-stack React and Node.js, WordPress and Shopify ecommerce, custom business websites, and secure infrastructure."
+      content="NexaPro Technologies builds and modernizes business software — IBM mainframe, AS/400 (IBM i), COBOL and RPG on one side; web, mobile, CRM, Java and AI solutions on the other. Free initial consultation."
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NexaPro Technologies" />
+    <meta property="og:title" content="NexaPro Technologies | Finding the Right Solutions. Building What's Next." />
+    <meta
+      property="og:description"
+      content="Mainframe, AS/400, COBOL and RPG expertise combined with modern web, mobile, CRM, Java and AI development."
+    />
+    <meta property="og:image" content="/logo-wordmark.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=Sora:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="preload" as="image" href="/logo-circle.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "NexaPro Technologies",
+        "url": "https://www.nexaprotechnologies.com",
+        "logo": "https://www.nexaprotechnologies.com/logo-circle.png",
+        "email": "info@nexaprotechnologies.com",
+        "telephone": "+91-6350282519",
+        "address": { "@type": "PostalAddress", "addressCountry": "IN" },
+        "sameAs": [
+          "https://www.linkedin.com/company/nexapro-technologies",
+          "https://github.com/Nexapro-Technology"
+        ]
+      }
+    </script>
+    <script>
+      // Decide before first paint whether the brand intro should show this session,
+      // so the homepage never flashes underneath it.
+      try {
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!sessionStorage.getItem("nx-intro-seen") && !reduce) {
+          document.documentElement.classList.add("nx-intro-pending");
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
+    <noscript>
+      <p style="padding:24px;font-family:sans-serif">
+        NexaPro Technologies — mainframe, AS/400, COBOL, RPG, web, mobile, CRM, Java and AI development.
+        Contact: info@nexaprotechnologies.com · +91-6350282519
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

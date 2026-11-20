@@ -1,72 +1,43 @@
-import { aboutData } from "../../data/content";
-import { FaCheckCircle, FaLightbulb, FaRocket } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import Reveal from "../Reveal";
+import Icon from "../Icon";
 
-const About = () => {
-  return (
-    <section id="about" className="section-padding">
-      <div className="container-custom">
-        <Reveal className="section-header">
-          <p className="section-subtitle">About us</p>
-          <h2 className="section-title">Who we are</h2>
-        </Reveal>
+// Homepage company introduction — light editorial section.
+const points = [
+  ["Who we are", "A Jaipur-based technology partner with specialists in IBM mainframe, AS400 (IBM i), COBOL and RPG, and a modern engineering team for web, mobile, CRM, Java and AI."],
+  ["What we do", "We develop new software, modernize and integrate legacy systems, and support live applications after go-live."],
+  ["How we work", "We begin with the business problem, keep what already works, and change one piece at a time — with testing at every step."],
+  ["How we stay", "Most work does not end at launch. We offer maintenance, enhancements and dedicated developers as long-term partners."],
+];
 
-        <div className="grid lg:grid-cols-2 gap-12 mb-12">
-          <Reveal variant="left">
-            <p className="text-slate-300 text-lg leading-relaxed mb-5">{aboutData.description}</p>
-            <p className="text-muted leading-relaxed mb-8">{aboutData.philosophy}</p>
-            <div className="card">
-              <h3 className="text-xl mb-4">Capability at a glance</h3>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {aboutData.expertise.map((tech) => (
-                  <div key={tech} className="flex items-center gap-2 text-sm text-slate-300">
-                    <FaCheckCircle className="text-primary shrink-0" />
-                    <span>{tech}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-6 grid sm:grid-cols-2 gap-3">
-              {aboutData.strengths.map((item) => (
-                <p key={item} className="text-xs tracking-wide text-slate-400 border border-white/10 rounded-full px-4 py-2 hover:border-primary/40 hover:text-accent transition-colors duration-300">
-                  {item}
-                </p>
-              ))}
-            </div>
+const About = () => (
+  <section className="relative bg-paper text-ink">
+    <div className="absolute inset-0 bg-grid-light opacity-60" aria-hidden="true" />
+    <div className="wrap relative grid gap-14 py-20 md:py-28 lg:grid-cols-[1fr_1.15fr]">
+      <Reveal>
+        <p className="eyebrow !text-primary-deep before:!bg-primary-deep">About NexaPro</p>
+        <h2 className="mt-5 text-display-lg !text-ink">
+          We find the right solution first. Then we build it properly.
+        </h2>
+        <p className="mt-6 max-w-lg text-lg leading-relaxed text-slate-600">
+          Many companies run on systems that were built decades ago and still work. At the same time, customers expect
+          websites, apps and instant answers. NexaPro sits exactly between those two realities.
+        </p>
+        <Link to="/about" className="btn-ghost-dark mt-8">
+          More about our company <Icon name="arrow" className="arrow" />
+        </Link>
+      </Reveal>
+      <div className="grid gap-px overflow-hidden rounded-lg border border-ink/10 bg-ink/10 sm:grid-cols-2">
+        {points.map(([t, d], i) => (
+          <Reveal key={t} delay={i * 90} className="bg-paper p-7">
+            <p className="font-mono text-[11px] text-primary-deep">0{i + 1}</p>
+            <h3 className="mt-3 font-display text-xl !text-ink">{t}</h3>
+            <p className="mt-3 leading-relaxed text-slate-600">{d}</p>
           </Reveal>
-
-          <div className="space-y-6">
-            <Reveal delay={80} variant="right">
-              <article className="card">
-                <div className="flex gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center">
-                    <FaRocket />
-                  </div>
-                  <div>
-                    <h3 className="text-xl mb-2">Our mission</h3>
-                    <p className="text-slate-400 leading-relaxed">{aboutData.mission}</p>
-                  </div>
-                </div>
-              </article>
-            </Reveal>
-            <Reveal delay={140} variant="right">
-              <article className="card">
-                <div className="flex gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center">
-                    <FaLightbulb />
-                  </div>
-                  <div>
-                    <h3 className="text-xl mb-2">Our vision</h3>
-                    <p className="text-slate-400 leading-relaxed">{aboutData.vision}</p>
-                  </div>
-                </div>
-              </article>
-            </Reveal>
-          </div>
-        </div>
+        ))}
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
 export default About;

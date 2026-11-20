@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+// NexaPro design system — palette drawn from the logo's cyan arc (#00B8E6 → #0077B6)
+// set against a deep ink base, with a paper tone for light editorial sections and a
+// restrained phosphor green reserved for the legacy / green-screen division.
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
@@ -6,73 +9,40 @@ export default {
       colors: {
         primary: "#00B8E6",
         "primary-deep": "#0077B6",
-        ink: "#05070C",
+        "primary-soft": "#7FDBF5",
+        accent: "#00E5FF",
+        ink: "#060A12",
         navy: "#0A1220",
-        surface: "#101A2C",
-        line: "rgba(0, 184, 230, 0.22)",
+        surface: "#0F1A2B",
+        "surface-2": "#14223A",
+        line: "rgba(127, 219, 245, 0.14)",
         muted: "#8EA0B8",
+        paper: "#F3F6F9",
+        "paper-2": "#E7EDF3",
+        graphite: "#0B1524",
+        phosphor: "#3DDC97",
+        amber: "#F5B547",
         secondary: "#070B14",
         dark: "#F4F7FB",
         light: "#F4F7FB",
-        accent: "#00E5FF",
       },
       fontFamily: {
-        sans: ["Outfit", "Montserrat", "sans-serif"],
-        display: ["Outfit", "Montserrat", "sans-serif"],
+        sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"],
+        display: ["Sora", '"IBM Plex Sans"', "sans-serif"],
+        mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
+      },
+      fontSize: {
+        "display-xl": ["clamp(2.6rem, 5.2vw, 4.6rem)", { lineHeight: "1.04", letterSpacing: "-0.03em" }],
+        "display-lg": ["clamp(2rem, 3.6vw, 3.2rem)", { lineHeight: "1.1", letterSpacing: "-0.025em" }],
+        "display-md": ["clamp(1.5rem, 2.4vw, 2.1rem)", { lineHeight: "1.2", letterSpacing: "-0.02em" }],
       },
       boxShadow: {
         glow: "0 0 40px rgba(0, 184, 230, 0.18)",
         card: "0 24px 60px rgba(0, 0, 0, 0.35)",
+        lift: "0 30px 80px -30px rgba(0, 20, 40, 0.55)",
       },
-      keyframes: {
-        float: {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-12px)" },
-        },
-        "spin-slow": {
-          from: { transform: "rotate(0deg)" },
-          to: { transform: "rotate(360deg)" },
-        },
-        marquee: {
-          from: { transform: "translateX(0)" },
-          to: { transform: "translateX(-50%)" },
-        },
-        shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
-        },
-        "pulse-ring": {
-          "0%": { transform: "scale(0.92)", opacity: "0.7" },
-          "100%": { transform: "scale(1.18)", opacity: "0" },
-        },
-        orbit: {
-          from: { transform: "rotate(0deg) translateX(var(--orbit-r)) rotate(0deg)" },
-          to: { transform: "rotate(360deg) translateX(var(--orbit-r)) rotate(-360deg)" },
-        },
-        "glow-shift": {
-          "0%, 100%": { opacity: "0.55", transform: "translate3d(0, 0, 0) scale(1)" },
-          "50%": { opacity: "0.9", transform: "translate3d(24px, -16px, 0) scale(1.08)" },
-        },
-        "gradient-flow": {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
-        },
-        "dot-pulse": {
-          "0%, 100%": { opacity: "0.35", transform: "scale(1)" },
-          "50%": { opacity: "1", transform: "scale(1.35)" },
-        },
-      },
-      animation: {
-        float: "float 6s ease-in-out infinite",
-        "spin-slow": "spin-slow 28s linear infinite",
-        "spin-reverse": "spin-slow 40s linear infinite reverse",
-        marquee: "marquee 32s linear infinite",
-        shimmer: "shimmer 3s linear infinite",
-        "pulse-ring": "pulse-ring 2.4s ease-out infinite",
-        orbit: "orbit 18s linear infinite",
-        "glow-shift": "glow-shift 10s ease-in-out infinite",
-        "gradient-flow": "gradient-flow 8s ease infinite",
-        "dot-pulse": "dot-pulse 3.6s ease-in-out infinite",
+      maxWidth: {
+        site: "82rem",
       },
     },
   },

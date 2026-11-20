@@ -1,22 +1,72 @@
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
-import { companyInfo, contactFormFields } from "../../data/content";
-import { FaEnvelope, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
-import Reveal from "../Reveal";
+import { budgetRanges, companyInfo, contactFormFields, contactMethods, projectTypes } from "../../data/content";
+import Icon from "../Icon";
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    company: "",
-    email: "",
-    phone: "",
-    service: "",
-    message: "",
-  });
+// ---------------------------------------------------------------------------
+// EXISTING SUBMISSION PIPELINE — PRESERVED
+// These are the same EmailJS service, template and public key used by the
+// original site, and the same template parameter names. New fields are folded
+// into `message` so they appear in the existing email template without any
+// change on the EmailJS dashboard. They are also sent as extra parameters in
+// case the template is later updated to use them directly.
+// ---------------------------------------------------------------------------
+const EMAILJS_SERVICE_ID = "service_wj1qll9";
+const EMAILJS_TEMPLATE_ID = "template_pvtw0fs";
+const EMAILJS_PUBLIC_KEY = "y6w8HaeZWHt3sVoXM";
+
+const serviceOptions = contactFormFields.find((f) => f.name === "service").options;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_FILL_MS = 2500; // spam protection: humans take longer than this
+
+const emptyProject = {
+  name: "",
+  email: "",
+  phone: "",
+  company: "",
+  service: "",
+  projectType: "",
+  message: "",
+  budget: "",
+  contactMethod: "Email",
+};
+const emptyCareer = { name: "", email: "", phone: "", role: "", experience: "", resume: "", message: "" };
+
+function Field({ id, label, required, error, hint, children }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-2 flex items-baseline justify-between text-[13.5px] font-medium text-white">
+        <span>
+          {label} {required ? <span className="text-primary" aria-hidden="true">*</span> : <span className="font-normal text-slate-500">(optional)</span>}
+        </span>
+        {hint && <span className="text-[12px] font-normal text-slate-500">{hint}</span>}
+      </label>
+      {children}
+      {error && (
+        <p id={`${id}-error`} className="mt-1.5 text-[13px] text-red-300" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Project inquiry / quote / careers form.
+ * variant: "project" (default) | "career"
+ */
+export default function Contact({ variant = "project", defaultService = "", submitLabel, compact = false }) {
+  const isCareer = variant === "career";
+  const initial = useMemo(
+    () => (isCareer ? { ...emptyCareer } : { ...emptyProject, service: defaultService }),
+    [isCareer, defaultService]
+  );
+  const [formData, setFormData] = useState(initial);
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | success | error
+  const [honeypot, setHoneypot] = useState("");
+  const startedAt = useRef(Date.now());
+  const formRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,201 +74,304 @@ const Contact = () => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const validateForm = () => {
+  const validate = () => {
     const next = {};
-    if (!formData.name.trim()) next.name = "Name is required";
-    if (!formData.company.trim()) next.company = "Company name is required";
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) next.email = "Email is required";
-    else if (!emailRegex.test(formData.email)) next.email = "Please enter a valid email";
-    if (!formData.phone.trim()) next.phone = "Phone number is required";
-    else if (formData.phone.length < 10) next.phone = "Please enter a valid phone number";
-    if (!formData.service) next.service = "Please select a service";
-    if (!formData.message.trim()) next.message = "Message is required";
+    if (!formData.name.trim()) next.name = "Please enter your full name.";
+    if (!formData.email.trim()) next.email = "Please enter your email address.";
+    else if (!emailRegex.test(formData.email)) next.email = "Please enter a valid email address.";
+    const digits = formData.phone.replace(/\D/g, "");
+    if (!formData.phone.trim()) next.phone = "Please enter a phone number.";
+    else if (digits.length < 10) next.phone = "Please enter a valid phone number (at least 10 digits).";
+    if (isCareer) {
+      if (!formData.role.trim()) next.role = "Which role or skill area are you applying for?";
+      if (formData.resume && !/^https?:\/\/\S+$/i.test(formData.resume.trim()))
+        next.resume = "Please paste a full link starting with https://";
+    } else {
+      if (!formData.company.trim()) next.company = "Please enter your company name.";
+      if (!formData.service) next.service = "Please select a service.";
+      if (!formData.projectType) next.projectType = "Please select a project type.";
+      if (formData.message.trim().length < 15) next.message = "Please describe your project in a sentence or two (15+ characters).";
+    }
     return next;
+  };
+
+  const buildPayload = () => {
+    if (isCareer) {
+      const message = [
+        `CAREER APPLICATION`,
+        `Role / area: ${formData.role}`,
+        `Experience: ${formData.experience || "—"}`,
+        `Resume / profile link: ${formData.resume || "— (will email resume)"}`,
+        "",
+        formData.message || "",
+        "",
+        `— Submitted from ${window.location.href}`,
+      ].join("\n");
+      return {
+        from_name: formData.name,
+        company_name: "Careers application",
+        from_email: formData.email,
+        phone_number: formData.phone,
+        service_required: `Careers — ${formData.role}`,
+        message,
+        to_email: companyInfo.formInbox,
+        role: formData.role,
+        resume_link: formData.resume,
+      };
+    }
+    const message = [
+      formData.message,
+      "",
+      "— Project details —",
+      `Project type: ${formData.projectType}`,
+      `Estimated budget: ${formData.budget || "Not specified"}`,
+      `Preferred contact method: ${formData.contactMethod}`,
+      `Submitted from: ${window.location.href}`,
+    ].join("\n");
+    return {
+      // original template parameters
+      from_name: formData.name,
+      company_name: formData.company,
+      from_email: formData.email,
+      phone_number: formData.phone,
+      service_required: formData.service,
+      message,
+      to_email: companyInfo.formInbox,
+      // additional parameters
+      project_type: formData.projectType,
+      budget: formData.budget,
+      contact_method: formData.contactMethod,
+      page_url: window.location.href,
+    };
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const next = validateForm();
+    if (status === "sending") return;
+
+    const next = validate();
     if (Object.keys(next).length) {
       setErrors(next);
+      const first = formRef.current?.querySelector(`[name="${Object.keys(next)[0]}"]`);
+      first?.focus();
       return;
     }
 
-    setIsSubmitting(true);
-    setSubmitError("");
+    // Spam protection: hidden honeypot field + minimum fill time (checked after
+    // validation so real users always see field errors first).
+    if (honeypot || Date.now() - startedAt.current < MIN_FILL_MS) {
+      setStatus("success"); // silently accept bots without sending
+      return;
+    }
 
+    setStatus("sending");
     emailjs
-      .send(
-        "service_wj1qll9",
-        "template_pvtw0fs",
-        {
-          from_name: formData.name,
-          company_name: formData.company,
-          from_email: formData.email,
-          phone_number: formData.phone,
-          service_required: formData.service,
-          message: formData.message,
-          to_email: companyInfo.formInbox,
-        },
-        "y6w8HaeZWHt3sVoXM"
-      )
+      .send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, buildPayload(), EMAILJS_PUBLIC_KEY)
       .then(() => {
-        setIsSubmitting(false);
-        setSubmitSuccess(true);
-        setFormData({
-          name: "",
-          company: "",
-          email: "",
-          phone: "",
-          service: "",
-          message: "",
-        });
-        setTimeout(() => setSubmitSuccess(false), 5000);
+        setStatus("success");
+        setFormData(initial);
+        startedAt.current = Date.now();
       })
-      .catch(() => {
-        setIsSubmitting(false);
-        setSubmitError(
-          "Failed to send message. Please try again or contact us directly at " +
-            companyInfo.email
-        );
-      });
+      .catch(() => setStatus("error"));
   };
 
-  return (
-    <section id="contact" className="section-padding">
-      <div className="container-custom">
-        <Reveal className="section-header">
-          <p className="section-subtitle">Get in touch</p>
-          <h2 className="section-title">Contact us</h2>
-          <p className="text-slate-300">Tell us about the system, product, or store you need to move forward.</p>
-        </Reveal>
-
-        <div className="grid lg:grid-cols-2 gap-10 max-w-6xl">
-          <Reveal variant="left">
-            <div className="card mb-6">
-              <h3 className="text-2xl mb-6">Start a conversation</h3>
-              <div className="space-y-5">
-                <div className="flex gap-4">
-                  <FaEnvelope className="text-primary mt-1" />
-                  <div>
-                    <p className="text-white font-medium">Email</p>
-                    <a href={`mailto:${companyInfo.email}`} className="text-slate-400 hover:text-accent">
-                      {companyInfo.email}
-                    </a>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <FaPhone className="text-primary mt-1" />
-                  <div>
-                    <p className="text-white font-medium">Phone</p>
-                    <a href={`tel:${companyInfo.phone}`} className="text-slate-400 hover:text-accent">
-                      {companyInfo.phone}
-                    </a>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <FaMapMarkerAlt className="text-primary mt-1" />
-                  <div>
-                    <p className="text-white font-medium">Location</p>
-                    <p className="text-slate-400">{companyInfo.location}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-2xl bg-gradient-to-br from-primary-deep to-primary p-8 text-ink">
-              <p className="text-lg leading-relaxed font-medium">
-                Partner with Nexapro Technologies — 6+ years in AI/ML and mobile,
-                10+ years on mainframe, AS/400, and COBOL, plus full-stack web
-                and commerce, delivered to a secure infrastructure quality standard.
-              </p>
-            </div>
-          </Reveal>
-
-          <Reveal delay={100} variant="right">
-            <div className="card">
-              {submitSuccess && (
-                <div className="mb-6 p-4 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-200">
-                  Thank you. Your message has been sent. We will reply shortly.
-                </div>
-              )}
-              {submitError && (
-                <div className="mb-6 p-4 rounded-xl bg-red-500/15 border border-red-400/30 text-red-200">
-                  {submitError}
-                </div>
-              )}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {[
-                  ["name", "Name", "text", "Your name"],
-                  ["company", "Company name", "text", "Your company"],
-                  ["email", "Email address", "email", "you@company.com"],
-                  ["phone", "Phone number", "tel", "+91-XXXXXXXXXX"],
-                ].map(([name, label, type, placeholder]) => (
-                  <div key={name}>
-                    <label htmlFor={name} className="block text-sm font-medium text-white mb-2">
-                      {label} *
-                    </label>
-                    <input
-                      type={type}
-                      id={name}
-                      name={name}
-                      value={formData[name]}
-                      onChange={handleChange}
-                      className={`input-field ${errors[name] ? "border-red-400" : ""}`}
-                      placeholder={placeholder}
-                    />
-                    {errors[name] && <p className="text-red-400 text-sm mt-1">{errors[name]}</p>}
-                  </div>
-                ))}
-
-                <div>
-                  <label htmlFor="service" className="block text-sm font-medium text-white mb-2">
-                    Service required *
-                  </label>
-                  <select
-                    id="service"
-                    name="service"
-                    value={formData.service}
-                    onChange={handleChange}
-                    className={`input-field select-dark ${errors.service ? "border-red-400" : ""}`}
-                  >
-                    <option value="">Select a service</option>
-                    {contactFormFields
-                      .find((field) => field.name === "service")
-                      .options.map((option) => (
-                        <option key={option}>{option}</option>
-                      ))}
-                  </select>
-                  {errors.service && <p className="text-red-400 text-sm mt-1">{errors.service}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-white mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    className={`textarea-field ${errors.message ? "border-red-400" : ""}`}
-                    placeholder="Tell us about your project..."
-                    rows="4"
-                  />
-                  {errors.message && <p className="text-red-400 text-sm mt-1">{errors.message}</p>}
-                </div>
-
-                <button type="submit" disabled={isSubmitting} className="w-full btn-primary disabled:opacity-50">
-                  {isSubmitting ? "Sending..." : "Send message"}
-                </button>
-              </form>
-            </div>
-          </Reveal>
-        </div>
-      </div>
-    </section>
+  const input = (name, type = "text", placeholder = "", extra = {}) => (
+    <input
+      id={`f-${variant}-${name}`}
+      name={name}
+      type={type}
+      value={formData[name]}
+      onChange={handleChange}
+      placeholder={placeholder}
+      aria-invalid={!!errors[name]}
+      aria-describedby={errors[name] ? `f-${variant}-${name}-error` : undefined}
+      className={`input-field ${errors[name] ? "field-error" : ""}`}
+      {...extra}
+    />
   );
-};
+  const id = (name) => `f-${variant}-${name}`;
 
-export default Contact;
+  if (status === "success") {
+    return (
+      <div className="pop-in rounded-lg border border-phosphor/30 bg-phosphor/[0.06] p-8" role="status" aria-live="polite">
+        <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-phosphor/15 text-phosphor">
+          <Icon name="check" className="h-6 w-6" />
+        </div>
+        <h3 className="font-display text-2xl text-white">{isCareer ? "Application received." : "Thank you — your requirement is with our team."}</h3>
+        <p className="mt-3 max-w-md leading-relaxed text-slate-300">
+          {isCareer
+            ? "We review every application. If your resume link was not included, please email it to "
+            : "We will get back to you shortly. If it is urgent, you can also reach us at "}
+          <a href={`mailto:${companyInfo.email}`} className="text-primary-soft underline underline-offset-4">
+            {companyInfo.email}
+          </a>
+          .
+        </p>
+        <button type="button" onClick={() => setStatus("idle")} className="btn-outline mt-6 !py-2.5">
+          Send another {isCareer ? "application" : "inquiry"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form ref={formRef} onSubmit={handleSubmit} noValidate className="space-y-5" aria-label={isCareer ? "Career application" : "Project inquiry"}>
+      {status === "error" && (
+        <div className="rounded-md border border-red-400/30 bg-red-500/10 p-4 text-[14px] text-red-200" role="alert">
+          We could not send your message. Please try again, or contact us directly at{" "}
+          <a className="underline" href={`mailto:${companyInfo.email}`}>{companyInfo.email}</a> or{" "}
+          <a className="underline" href={`tel:${companyInfo.phoneHref}`}>{companyInfo.phone}</a>.
+        </div>
+      )}
+
+      {/* honeypot — hidden from people, visible to naive bots */}
+      <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+        <label>
+          Website
+          <input tabIndex={-1} autoComplete="off" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} name="website" />
+        </label>
+      </div>
+
+      <div className={`grid gap-5 ${compact ? "" : "sm:grid-cols-2"}`}>
+        <Field id={id("name")} label="Full name" required error={errors.name}>
+          {input("name", "text", "Your full name", { autoComplete: "name" })}
+        </Field>
+        <Field id={id("email")} label={isCareer ? "Email" : "Business email"} required error={errors.email}>
+          {input("email", "email", "you@company.com", { autoComplete: "email" })}
+        </Field>
+        <Field id={id("phone")} label="Phone number" required error={errors.phone}>
+          {input("phone", "tel", "+91 XXXXX XXXXX", { autoComplete: "tel" })}
+        </Field>
+        {isCareer ? (
+          <Field id={id("role")} label="Role / skill area" required error={errors.role}>
+            {input("role", "text", "e.g. RPGLE Developer, Flutter Developer")}
+          </Field>
+        ) : (
+          <Field id={id("company")} label="Company name" required error={errors.company}>
+            {input("company", "text", "Your company", { autoComplete: "organization" })}
+          </Field>
+        )}
+      </div>
+
+      {isCareer ? (
+        <>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field id={id("experience")} label="Experience" error={errors.experience}>
+              {input("experience", "text", "e.g. 4 years")}
+            </Field>
+            <Field id={id("resume")} label="Resume / LinkedIn link" error={errors.resume} hint="Drive, Dropbox or LinkedIn">
+              {input("resume", "url", "https://")}
+            </Field>
+          </div>
+          <Field id={id("message")} label="Tell us about yourself" error={errors.message}>
+            <textarea
+              id={id("message")}
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Key skills, recent projects, notice period…"
+              className="textarea-field"
+            />
+          </Field>
+        </>
+      ) : (
+        <>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field id={id("service")} label="Service interested in" required error={errors.service}>
+              <select
+                id={id("service")}
+                name="service"
+                value={formData.service}
+                onChange={handleChange}
+                aria-invalid={!!errors.service}
+                className={`input-field [&>option]:text-ink ${errors.service ? "field-error" : ""}`}
+              >
+                <option value="">Select a service</option>
+                {serviceOptions.map((o) => (
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+            </Field>
+            <Field id={id("projectType")} label="Project type" required error={errors.projectType}>
+              <select
+                id={id("projectType")}
+                name="projectType"
+                value={formData.projectType}
+                onChange={handleChange}
+                aria-invalid={!!errors.projectType}
+                className={`input-field [&>option]:text-ink ${errors.projectType ? "field-error" : ""}`}
+              >
+                <option value="">Select project type</option>
+                {projectTypes.map((o) => (
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <Field id={id("message")} label="Brief project description" required error={errors.message}>
+            <textarea
+              id={id("message")}
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={5}
+              aria-invalid={!!errors.message}
+              aria-describedby={errors.message ? `${id("message")}-error` : undefined}
+              placeholder="What problem are you trying to solve? Which systems are involved? Any timelines?"
+              className={`textarea-field ${errors.message ? "field-error" : ""}`}
+            />
+          </Field>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field id={id("budget")} label="Estimated budget">
+              <select id={id("budget")} name="budget" value={formData.budget} onChange={handleChange} className="input-field [&>option]:text-ink">
+                <option value="">Select a range</option>
+                {budgetRanges.map((o) => (
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+            </Field>
+            <fieldset>
+              <legend className="mb-2 text-[13.5px] font-medium text-white">
+                Preferred contact method <span className="text-primary" aria-hidden="true">*</span>
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {contactMethods.map((m) => (
+                  <label
+                    key={m}
+                    className={`cursor-pointer rounded-md border px-3 py-2 text-[13px] transition ${
+                      formData.contactMethod === m ? "border-primary bg-primary/10 text-white" : "border-white/10 text-slate-300 hover:border-white/25"
+                    }`}
+                  >
+                    <input type="radio" name="contactMethod" value={m} checked={formData.contactMethod === m} onChange={handleChange} className="sr-only" />
+                    {m}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </div>
+        </>
+      )}
+
+      <div className="flex flex-col gap-4 pt-1 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[12.5px] text-slate-500">
+          <span className="text-primary">*</span> Required. {isCareer ? "We only use your details for recruitment." : "Initial consultation is free of cost."}
+        </p>
+        <button type="submit" disabled={status === "sending"} className="btn-primary min-w-[200px] disabled:cursor-wait disabled:opacity-70">
+          {status === "sending" ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/30 border-t-ink" aria-hidden="true" />
+              Sending…
+            </>
+          ) : (
+            <>
+              {submitLabel || (isCareer ? "Submit application" : "Send my requirement")} <Icon name="arrow" className="arrow" />
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}

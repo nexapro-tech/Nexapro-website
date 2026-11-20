@@ -1,88 +1,82 @@
-import { qualityStandard, servicesData } from "../../data/content";
-import {
-  FaBrain,
-  FaMobileAlt,
-  FaServer,
-  FaProjectDiagram,
-  FaLaptopCode,
-  FaShoppingBag,
-  FaShieldAlt,
-  FaCheckCircle,
-} from "react-icons/fa";
-import Reveal from "../Reveal";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { services } from "../../data/services";
+import SectionHead from "../Sections/SectionHead";
+import Icon from "../Icon";
 
-const iconMap = {
-  FaBrain,
-  FaMobileAlt,
-  FaServer,
-  FaProjectDiagram,
-  FaLaptopCode,
-  FaShoppingBag,
-};
-
+// Homepage services overview — an index list with a live preview panel.
 const Services = () => {
+  const [active, setActive] = useState(0);
+  const s = services[active];
   return (
-    <section id="services" className="section-padding">
-      <div className="container-custom">
-        <Reveal className="section-header">
-          <p className="section-subtitle">What we offer clients</p>
-          <h2 className="section-title">Services structured for real delivery</h2>
-          <p className="text-slate-300 leading-relaxed">
-            AI/ML and mobile with 6+ years of practice. Mainframe, AS/400, COBOL, and
-            legacy integration with 10+ years. Full-stack React and Node.js, WordPress
-            and Shopify commerce, and custom purpose-built business websites.
-          </p>
-        </Reveal>
+    <section className="border-t border-line py-20 md:py-28" aria-labelledby="svc-title">
+      <div className="wrap">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <SectionHead eyebrow="Services" title={<span id="svc-title">Thirteen services. Each one explained properly.</span>} />
+          <Link to="/services" className="link-arrow shrink-0">
+            View all services <Icon name="arrow" />
+          </Link>
+        </div>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {servicesData.map((service, index) => {
-            const Icon = iconMap[service.icon] || FaLaptopCode;
-            return (
-              <Reveal key={service.id} delay={index * 80} variant="scale">
-                <article className="card h-full group">
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="rounded-2xl bg-primary/10 p-3 text-primary group-hover:bg-gradient-to-br group-hover:from-accent group-hover:to-primary-deep group-hover:text-ink transition-all duration-300">
-                        <Icon className="text-2xl" />
-                      </div>
-                      <h3 className="text-lg">{service.title}</h3>
-                    </div>
+        <div className="mt-12 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
+          <ol className="border-t border-line">
+            {services.map((svc, i) => (
+              <li key={svc.slug}>
+                <Link
+                  to={`/services/${svc.slug}`}
+                  onMouseEnter={() => setActive(i)}
+                  onFocus={() => setActive(i)}
+                  className={`group grid grid-cols-[40px_1fr_auto] items-center gap-3 border-b border-line py-4 transition-colors ${
+                    active === i ? "text-white" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <span className={`font-mono text-[11px] ${svc.division === "legacy" ? "text-phosphor/70" : "text-primary/70"}`}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="font-display text-[17px] sm:text-lg">{svc.title}</span>
+                  <Icon name="arrow" className={`transition ${active === i ? "translate-x-0 text-primary opacity-100" : "-translate-x-2 opacity-0"}`} />
+                </Link>
+              </li>
+            ))}
+          </ol>
+
+          <div className="hidden lg:block">
+            <div className="sticky top-28">
+              <div key={s.slug} className="pop-in overflow-hidden rounded-lg border border-line bg-surface/60">
+                <div className={`h-1 ${s.division === "legacy" ? "bg-phosphor" : "bg-primary"}`} />
+                <div className="p-8">
+                  <div className="flex items-center justify-between">
+                    <span className="grid h-11 w-11 place-items-center rounded-md border border-line text-primary">
+                      <Icon name={s.icon} className="h-5 w-5" />
+                    </span>
+                    <span className={`font-mono text-[11px] uppercase tracking-[0.18em] ${s.division === "legacy" ? "text-phosphor" : "text-primary"}`}>
+                      {s.division === "legacy" ? "Legacy & Mainframe" : "Modern Technology"}
+                    </span>
                   </div>
-                  {service.badge ? (
-                    <p className="text-accent text-[11px] tracking-[0.22em] uppercase mb-3">
-                      {service.badge}
-                    </p>
-                  ) : null}
-                  <p className="text-slate-400 text-sm leading-relaxed mb-5">{service.summary}</p>
-                  <ul className="space-y-2.5">
-                    {service.services.map((item) => (
-                      <li key={item} className="flex items-start gap-2 text-sm text-slate-300">
-                        <FaCheckCircle className="text-primary mt-0.5 shrink-0" />
-                        <span>{item}</span>
+                  <h3 className="mt-6 font-display text-2xl text-white">{s.title}</h3>
+                  <p className="mt-3 leading-relaxed text-slate-300">{s.heroLead}</p>
+                  <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">Problems we solve</p>
+                  <ul className="mt-3 space-y-2">
+                    {s.problems.slice(0, 3).map((p) => (
+                      <li key={p.title} className="flex gap-2.5 text-[14px] text-slate-300">
+                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary" />
+                        <span><span className="text-white">{p.title}.</span> {p.text}</span>
                       </li>
                     ))}
                   </ul>
-                </article>
-              </Reveal>
-            );
-          })}
-        </div>
-
-        <Reveal delay={120} variant="up" className="mt-8">
-          <aside className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-navy via-surface to-ink p-8 md:p-10">
-            <div className="pointer-events-none absolute -right-10 top-0 h-40 w-40 rounded-full bg-accent/15 blur-[70px]" />
-            <p className="section-subtitle mb-2">{qualityStandard.eyebrow}</p>
-            <div className="flex flex-col md:flex-row md:items-start gap-5">
-              <div className="rounded-2xl bg-primary/15 p-4 text-accent shrink-0">
-                <FaShieldAlt className="text-3xl" />
-              </div>
-              <div>
-                <h3 className="text-2xl mb-3">{qualityStandard.title}</h3>
-                <p className="text-slate-300 leading-relaxed max-w-3xl">{qualityStandard.text}</p>
+                  <div className="mt-6 flex flex-wrap gap-1.5">
+                    {s.stack.flatMap((g) => g.items).slice(0, 8).map((t) => (
+                      <span key={t} className="chip">{t}</span>
+                    ))}
+                  </div>
+                  <Link to={`/services/${s.slug}`} className="btn-primary mt-8">
+                    Explore {s.title} <Icon name="arrow" className="arrow" />
+                  </Link>
+                </div>
               </div>
             </div>
-          </aside>
-        </Reveal>
+          </div>
+        </div>
       </div>
     </section>
   );
