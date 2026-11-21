@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { navMain } from "../../data/content";
 import { divisions, servicesByDivision } from "../../data/services";
@@ -73,6 +73,14 @@ export default function Navbar() {
   const { pathname } = useLocation();
   const megaRef = useRef(null);
   const closeTimer = useRef(null);
+  const mobilePanelRef = useRef(null);
+  const mobileToggleRef = useRef(null);
+  const previouslyFocusedRef = useRef(null);
+
+  const closeMobile = useCallback(() => {
+    setMobileOpen(false);
+    setMobileServices(false);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -83,21 +91,54 @@ export default function Navbar() {
 
   useEffect(() => {
     setMegaOpen(false);
-    setMobileOpen(false);
-  }, [pathname]);
+    closeMobile();
+  }, [pathname, closeMobile]);
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    if (!mobileOpen) return undefined;
+    const { body, documentElement } = document;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyPaddingRight = body.style.paddingRight;
+    const previousHtmlOverflow = documentElement.style.overflow;
+    const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
+
+    body.style.overflow = "hidden";
+    documentElement.style.overflow = "hidden";
+    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
+
     return () => {
-      document.body.style.overflow = "";
+      body.style.overflow = previousBodyOverflow;
+      body.style.paddingRight = previousBodyPaddingRight;
+      documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [mobileOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
+    previouslyFocusedRef.current = document.activeElement;
+    const frame = requestAnimationFrame(() => mobilePanelRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (mobileOpen) return;
+    if (previouslyFocusedRef.current) mobileToggleRef.current?.focus();
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    const desktopBreakpoint = window.matchMedia("(min-width: 1280px)");
+    const closeOnDesktop = () => {
+      if (desktopBreakpoint.matches) closeMobile();
+    };
+    desktopBreakpoint.addEventListener("change", closeOnDesktop);
+    return () => desktopBreakpoint.removeEventListener("change", closeOnDesktop);
+  }, [closeMobile]);
 
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") {
         setMegaOpen(false);
-        setMobileOpen(false);
+        closeMobile();
       }
     };
     const onClick = (e) => {
@@ -109,7 +150,7 @@ export default function Navbar() {
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("mousedown", onClick);
     };
-  }, []);
+  }, [closeMobile]);
 
   const openMega = () => {
     clearTimeout(closeTimer.current);
@@ -121,16 +162,40 @@ export default function Navbar() {
 
   const servicesActive = pathname.startsWith("/services");
   const solid = scrolled || megaOpen || mobileOpen;
+  const headerUsesBackdrop = (scrolled || mobileOpen) && !megaOpen;
 
   const linkCls = (active) =>
     `relative px-1 py-2 text-[13.5px] transition-colors after:absolute after:inset-x-1 after:-bottom-0.5 after:h-px after:origin-left after:bg-primary after:transition-transform after:duration-300 ${
       active ? "text-white after:scale-x-100" : "text-slate-300 hover:text-white after:scale-x-0 hover:after:scale-x-100"
     }`;
 
+  const toggleMobile = () => {
+    if (mobileOpen) closeMobile();
+    else setMobileOpen(true);
+  };
+
+  const trapMobileFocus = (e) => {
+    if (e.key !== "Tab" || !mobilePanelRef.current) return;
+    const focusable = [...mobilePanelRef.current.querySelectorAll('a[href], button:not([disabled])')].filter(
+      (element) => !element.hasAttribute("aria-hidden")
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
+    <>
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-[background,border-color,backdrop-filter] duration-300 ${
-        solid ? "border-b border-line bg-ink/90 backdrop-blur-xl" : "border-b border-transparent bg-transparent"
+        solid ? `border-b border-line bg-ink/90 ${headerUsesBackdrop ? "backdrop-blur-xl" : ""}` : "border-b border-transparent bg-transparent"
       }`}
     >
       <a
@@ -206,25 +271,47 @@ export default function Navbar() {
           </Link>
           <button
             type="button"
+            ref={mobileToggleRef}
             className="grid h-11 w-11 place-items-center rounded-md border border-line text-white xl:hidden"
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            onClick={() => setMobileOpen((o) => !o)}
+            onClick={toggleMobile}
           >
             <Icon name={mobileOpen ? "close" : "menu"} className="h-5 w-5" />
           </button>
         </div>
       </nav>
+      </header>
 
-      {/* Mobile drawer */}
+      {/* Mobile navigation is deliberately outside the blurred header. A backdrop filter on the
+          header otherwise turns it into the containing block for fixed children on mobile. */}
       <div
         id="mobile-menu"
-        className={`fixed inset-x-0 bottom-0 top-[72px] overflow-y-auto bg-ink transition-[opacity,transform] duration-300 xl:hidden ${
-          mobileOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"
+        className={`fixed inset-x-0 bottom-0 top-[72px] z-40 transition-[visibility,opacity] duration-300 xl:hidden ${
+          mobileOpen ? "visible opacity-100" : "invisible pointer-events-none opacity-0"
         }`}
+        aria-hidden={!mobileOpen}
       >
-        <div className="wrap flex min-h-full flex-col py-6">
+        <button type="button" aria-label="Close navigation menu" className="absolute inset-0 cursor-default bg-ink/70 backdrop-blur-[2px]" onClick={closeMobile} tabIndex={-1} />
+        <aside
+          ref={mobilePanelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation"
+          tabIndex={-1}
+          onKeyDown={trapMobileFocus}
+          className={`absolute inset-y-0 right-0 flex w-[min(88vw,31rem)] flex-col overflow-y-auto overscroll-contain border-l border-line bg-navy shadow-[-24px_0_60px_-32px_rgba(0,0,0,.8)] transition-transform duration-300 ${
+            mobileOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-line px-5 py-4">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary-soft">Navigate</span>
+            <button type="button" onClick={closeMobile} className="grid h-10 w-10 place-items-center rounded-md border border-line text-white hover:border-primary hover:text-primary" aria-label="Close menu">
+              <Icon name="close" className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="wrap flex min-h-full flex-col py-4">
           <ul className="divide-y divide-line border-y border-line">
             {navMain.map((item) =>
               item.mega ? (
@@ -245,7 +332,7 @@ export default function Navbar() {
                         [divisions.modern, modern, "text-primary"],
                       ].map(([d, items, tone]) => (
                         <div key={d.key} className="mb-4">
-                          <Link to={`/services/${d.slug}`} className={`mb-1 block font-mono text-[11px] uppercase tracking-[0.2em] ${tone}`}>
+                          <Link to={`/services/${d.slug}`} onClick={closeMobile} className={`mb-1 block font-mono text-[11px] uppercase tracking-[0.2em] ${tone}`}>
                             {d.name} →
                           </Link>
                           <ul>
@@ -253,6 +340,7 @@ export default function Navbar() {
                               <li key={s.slug}>
                                 <NavLink
                                   to={`/services/${s.slug}`}
+                                  onClick={closeMobile}
                                   className={({ isActive }) => `block py-2 text-[15px] ${isActive ? "text-primary" : "text-slate-300"}`}
                                 >
                                   {s.title}
@@ -262,7 +350,7 @@ export default function Navbar() {
                           </ul>
                         </div>
                       ))}
-                      <Link to="/services" className="link-arrow">
+                      <Link to="/services" onClick={closeMobile} className="link-arrow">
                         View all services <Icon name="arrow" />
                       </Link>
                     </div>
@@ -272,6 +360,7 @@ export default function Navbar() {
                 <li key={item.name}>
                   <NavLink
                     to={item.to}
+                    onClick={closeMobile}
                     end={item.to === "/"}
                     className={({ isActive }) =>
                       `flex items-center justify-between py-4 font-display text-xl ${isActive ? "text-primary" : "text-white"}`
@@ -285,13 +374,14 @@ export default function Navbar() {
             )}
           </ul>
           <div className="mt-auto grid gap-3 pt-8">
-            <Link to="/get-a-quote" className="btn-primary">
+            <Link to="/get-a-quote" onClick={closeMobile} className="btn-primary">
               Get a Free Quote
             </Link>
             <p className="text-center text-xs text-slate-500">Initial consultation is free of cost.</p>
           </div>
-        </div>
+          </div>
+        </aside>
       </div>
-    </header>
+    </>
   );
 }
