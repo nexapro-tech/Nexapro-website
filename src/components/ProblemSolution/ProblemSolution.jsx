@@ -81,8 +81,9 @@ export default function ProblemSolution() {
   ][p];
 
   return (
-    <section ref={ref} className="relative border-t border-line bg-navy/60 py-20 md:py-28" aria-labelledby="ps-title">
-      <div className="wrap">
+    <section ref={ref} className="relative overflow-hidden border-t border-[#283755] bg-[#0d1328] py-20 md:py-28" aria-labelledby="ps-title">
+      <div className="absolute right-[-12rem] top-[-10rem] h-[34rem] w-[34rem] rounded-full bg-[#4338ca]/15 blur-3xl" aria-hidden="true" />
+      <div className="wrap relative">
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <SectionHead
             eyebrow="Problem → Solution"
@@ -127,15 +128,15 @@ export default function ProblemSolution() {
                   tabIndex={active ? 0 : -1}
                   onClick={() => goScenario(i)}
                   className={`group relative min-w-[230px] shrink-0 overflow-hidden rounded-md border p-4 text-left transition-colors lg:min-w-0 ${
-                    active ? "border-primary/50 bg-surface" : "border-line bg-transparent hover:border-white/20"
+                    active ? "border-[#a5b4fc]/65 bg-[#19213c] shadow-[0_18px_36px_-30px_rgba(129,140,248,0.85)]" : "border-[#31405f] bg-transparent hover:border-[#a5b4fc]/50"
                   }`}
                 >
-                  <span className={`font-mono text-[11px] ${active ? "text-primary" : "text-slate-500"}`}>0{i + 1}</span>
+                  <span className={`font-mono text-[11px] ${active ? "text-[#c4b5fd]" : "text-slate-500"}`}>0{i + 1}</span>
                   <span className={`mt-1 block font-display text-[15.5px] leading-snug ${active ? "text-white" : "text-slate-300"}`}>{sc.tab}</span>
                   <span className="mt-1 block text-[12.5px] text-slate-500">{sc.who}</span>
                   {active && (
                     <span className="absolute inset-x-0 bottom-0 h-[2px] bg-white/5">
-                      <span className="block h-full bg-primary transition-[width] duration-700" style={{ width: `${((p + 1) / 3) * 100}%` }} />
+                      <span className="block h-full bg-[#a5b4fc] transition-[width] duration-700" style={{ width: `${((p + 1) / 3) * 100}%` }} />
                     </span>
                   )}
                 </button>
@@ -144,25 +145,25 @@ export default function ProblemSolution() {
           </div>
 
           {/* Stage */}
-          <div id="ps-panel" role="tabpanel" aria-labelledby={`ps-tab-${s}`} className="overflow-hidden rounded-lg border border-line bg-ink">
+          <div id="ps-panel" role="tabpanel" aria-labelledby={`ps-tab-${s}`} className="overflow-hidden rounded-2xl border border-[#334463] bg-[#0a1021] shadow-[0_24px_60px_-40px_rgba(69,80,180,0.65)]">
             {/* phase rail */}
-            <div className="grid grid-cols-3 border-b border-line">
+            <div className="grid grid-cols-3 border-b border-[#334463]">
               {PHASES.map((ph, i) => (
                 <button
                   key={ph.label}
                   type="button"
                   onClick={() => goPhase(i)}
                   aria-current={i === p ? "step" : undefined}
-                  className={`relative px-3 py-3 text-left transition-colors sm:px-5 ${i === p ? "bg-white/[0.03]" : "hover:bg-white/[0.02]"} ${i > 0 ? "border-l border-line" : ""}`}
+                  className={`relative px-3 py-3 text-left transition-colors sm:px-5 ${i === p ? "bg-white/[0.05]" : "hover:bg-white/[0.02]"} ${i > 0 ? "border-l border-[#334463]" : ""}`}
                 >
-                  <span className={`font-mono text-[10.5px] ${i <= p ? "text-primary" : "text-slate-600"}`}>0{i + 1}</span>
+                  <span className={`font-mono text-[10.5px] ${i <= p ? "text-[#c4b5fd]" : "text-slate-600"}`}>0{i + 1}</span>
                   <span className={`ml-2 text-[12.5px] sm:text-[13.5px] ${i === p ? "text-white" : "text-slate-500"}`}>{ph.label}</span>
                   <span className="absolute inset-x-0 bottom-0 h-[2px]">
-                    {i < p && <span className="block h-full bg-primary/60" />}
+                    {i < p && <span className="block h-full bg-[#a5b4fc]/60" />}
                     {i === p && (
                       <span
                         key={`ph-${k}`}
-                        className={`ps-progress block h-full bg-primary ${running ? "is-running" : ""}`}
+                        className={`ps-progress block h-full bg-[#a5b4fc] ${running ? "is-running" : ""}`}
                         style={{ "--ps-dur": `${ph.dur}ms`, transform: running ? undefined : "scaleX(1)" }}
                       />
                     )}
@@ -242,9 +243,9 @@ export default function ProblemSolution() {
             </div>
 
             {/* caption */}
-            <div className="grid gap-5 border-t border-line p-5 sm:p-6 md:grid-cols-[1fr_auto] md:items-end" aria-live="polite">
+            <div className="grid gap-5 border-t border-[#334463] p-5 sm:p-6 md:grid-cols-[1fr_auto] md:items-end" aria-live="polite">
               <div key={`cap-${s}-${p}`} className="pop-in min-h-[92px]">
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-primary">
+                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#c4b5fd]">
                   {p === 0 ? "What's going wrong" : p === 1 ? "How NexaPro approaches it" : "What your team gets"}
                 </p>
                 {p === 0 && <p className="mt-2 max-w-2xl leading-relaxed text-slate-300">{scenario.problem}</p>}

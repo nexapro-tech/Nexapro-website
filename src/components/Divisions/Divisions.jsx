@@ -3,106 +3,75 @@ import { divisions, servicesByDivision } from "../../data/services";
 import Reveal from "../Reveal";
 import Icon from "../Icon";
 
-const L = divisions.legacy;
-const M = divisions.modern;
+const cards = [
+  {
+    division: divisions.legacy,
+    icon: "terminal",
+    label: "Core systems",
+    title: "Legacy & Mainframe Solutions",
+    text: "Safe development, support and modernization for the IBM platforms behind critical business operations.",
+    skills: ["COBOL", "RPGLE", "IBM i", "z/OS", "DB2"],
+    tone: "green",
+  },
+  {
+    division: divisions.modern,
+    icon: "layers",
+    label: "Digital products",
+    title: "Modern Technology Solutions",
+    text: "Websites, mobile apps, software platforms and AI automation built around your real workflow.",
+    skills: ["Web", "Mobile", "CRM", "Java", "AI"],
+    tone: "blue",
+  },
+];
 
 export default function Divisions() {
   return (
-    <section className="relative border-t border-line" aria-labelledby="div-title">
-      <div className="wrap py-20 md:py-24">
+    <section className="relative overflow-hidden border-t border-line bg-[#070d18]" aria-labelledby="div-title">
+      <div className="absolute left-[18%] top-[-12rem] h-80 w-80 rounded-full bg-primary-deep/10 blur-[110px]" aria-hidden="true" />
+      <div className="wrap relative py-14 md:py-16">
         <Reveal className="max-w-3xl">
           <p className="eyebrow">Two core technology divisions</p>
-          <h2 id="div-title" className="mt-4 text-display-lg">
-            Deep legacy expertise and modern engineering — under one roof.
-          </h2>
-        </Reveal>
-      </div>
-      <div className="grid lg:grid-cols-2">
-        {/* Legacy */}
-        <Reveal variant="none" className="relative overflow-hidden border-t border-line bg-[#03100A] lg:border-r">
-          <div className="absolute inset-0 bg-scan" aria-hidden="true" />
-          <div className="relative flex h-full flex-col p-8 sm:p-12 xl:p-16">
-            <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.2em] text-phosphor">
-              <span>Division A</span>
-              <span className="flex items-center gap-2"><i className="pulse-dot h-2 w-2 rounded-full bg-phosphor" /> {L.years}</span>
-            </div>
-            <h3 className="mt-8 font-display text-3xl text-white md:text-4xl">Legacy Systems &amp; Mainframe Modernization</h3>
-            <p className="mt-5 max-w-lg leading-relaxed text-slate-300">
-              Development, maintenance and modernization of the IBM platforms that still run banking, insurance, manufacturing and
-              distribution — and integration with everything new.
-            </p>
-            <div className="mt-8 rounded border border-phosphor/20 bg-black/30 p-5 font-mono text-[12.5px] leading-7 text-phosphor/90">
-              {[
-                ["LANG", "COBOL · COBOL/400 · RPG · RPGLE · PL/I · HLASM"],
-                ["DATA", "DB2 · Db2 for i · VSAM · IMS"],
-                ["RUN ", "JCL · CICS · CL · DDS"],
-                ["DO  ", "Modernize · Migrate data · Integrate"],
-              ].map(([k, v]) => (
-                <div key={k} className="flex gap-4">
-                  <span className="shrink-0 text-phosphor/50">{k}</span>
-                  <span className="text-slate-200">{v}</span>
-                </div>
-              ))}
-            </div>
-            <ul className="mt-8 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-              {servicesByDivision("legacy").map((s) => (
-                <li key={s.slug}>
-                  <Link to={`/services/${s.slug}`} className="group flex items-center justify-between border-b border-phosphor/15 py-2.5 text-[14.5px] text-slate-200 hover:text-phosphor">
-                    {s.title}
-                    <Icon name="arrow" className="text-phosphor/40 transition group-hover:translate-x-1 group-hover:text-phosphor" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Link to={`/services/${L.slug}`} className="btn mt-10 self-start border border-phosphor/40 text-phosphor hover:bg-phosphor hover:text-ink">
-              Explore the legacy division <Icon name="arrow" className="arrow" />
-            </Link>
-          </div>
+          <h2 id="div-title" className="mt-4 text-display-lg">The right expertise for the system you are building or improving.</h2>
         </Reveal>
 
-        {/* Modern */}
-        <Reveal variant="none" delay={120} className="relative overflow-hidden border-t border-line bg-gradient-to-br from-[#062238] via-[#07182A] to-ink">
-          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full border border-primary/20" aria-hidden="true" />
-          <div className="absolute -right-10 -top-10 h-52 w-52 rounded-full border border-primary/25" aria-hidden="true" />
-          <div className="relative flex h-full flex-col p-8 sm:p-12 xl:p-16">
-            <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
-              <span>Division B</span>
-              <span>{M.years}</span>
-            </div>
-            <h3 className="mt-8 font-display text-3xl text-white md:text-4xl">Modern Technology Solutions</h3>
-            <p className="mt-5 max-w-lg leading-relaxed text-slate-300">
-              Websites, web apps, mobile apps, CRMs, Java back ends, e-commerce and AI automation — designed around a business
-              problem and built to be maintained.
-            </p>
-            <div className="mt-8 grid grid-cols-3 gap-2">
-              {[
-                ["globe", "Web"],
-                ["mobile", "Mobile"],
-                ["users", "CRM"],
-                ["spark", "AI"],
-                ["cube", "Java"],
-                ["cart", "Commerce"],
-              ].map(([i, l]) => (
-                <div key={l} className="flex items-center gap-2 rounded border border-primary/20 bg-white/[0.03] px-3 py-3 text-[13px] text-slate-200">
-                  <Icon name={i} className="text-primary" /> {l}
+        <div className="mt-8 grid gap-4 lg:grid-cols-2">
+          {cards.map(({ division, icon, label, title, text, skills, tone }, index) => {
+            const green = tone === "green";
+            const serviceCount = servicesByDivision(division.key).length;
+            const accent = green ? "text-phosphor" : "text-primary";
+            const border = green ? "border-phosphor/25 hover:border-phosphor/55" : "border-primary/25 hover:border-primary/55";
+            const iconStyle = green ? "border-phosphor/30 bg-phosphor/10 text-phosphor" : "border-primary/30 bg-primary/10 text-primary";
+            const tagStyle = green ? "border-phosphor/20 bg-phosphor/[0.05] text-phosphor/85" : "border-primary/20 bg-primary/[0.05] text-primary-soft";
+
+            return (
+              <Reveal key={division.key} delay={index * 100} className={`group relative overflow-hidden rounded-lg border bg-[#091424] p-5 transition-colors duration-300 sm:p-6 ${border}`}>
+                <div className={`absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full blur-2xl ${green ? "bg-phosphor/10" : "bg-primary/10"}`} aria-hidden="true" />
+                <div className="relative flex h-full flex-col">
+                  <div className="flex items-start justify-between gap-5">
+                    <span className={`grid h-10 w-10 place-items-center rounded-md border ${iconStyle}`}>
+                      <Icon name={icon} className="h-5 w-5" />
+                    </span>
+                    <p className={`font-mono text-[10px] uppercase tracking-[0.16em] ${accent}`}>{label} · {division.years}</p>
+                  </div>
+
+                  <h3 className="mt-5 font-display text-xl text-white">{title}</h3>
+                  <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-slate-400">{text}</p>
+
+                  <div className="mt-5 flex flex-wrap gap-1.5">
+                    {skills.map((skill) => <span key={skill} className={`rounded border px-2 py-1 font-mono text-[10px] ${tagStyle}`}>{skill}</span>)}
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between border-t border-white/[0.08] pt-4">
+                    <span className="text-[12px] text-slate-500">{serviceCount} specialist services</span>
+                    <Link to={`/services/${division.slug}`} className={`link-arrow text-[13px] ${green ? "!text-phosphor" : ""}`}>
+                      View division <Icon name="arrow" />
+                    </Link>
+                  </div>
                 </div>
-              ))}
-            </div>
-            <ul className="mt-8 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-              {servicesByDivision("modern").map((s) => (
-                <li key={s.slug}>
-                  <Link to={`/services/${s.slug}`} className="group flex items-center justify-between border-b border-primary/15 py-2.5 text-[14.5px] text-slate-200 hover:text-primary-soft">
-                    {s.title}
-                    <Icon name="arrow" className="text-primary/40 transition group-hover:translate-x-1 group-hover:text-primary" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Link to={`/services/${M.slug}`} className="btn-primary mt-10 self-start">
-              Explore modern solutions <Icon name="arrow" className="arrow" />
-            </Link>
-          </div>
-        </Reveal>
+              </Reveal>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

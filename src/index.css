@@ -483,15 +483,62 @@ details[open] .faq-icon {
 }
 
 /* Hero entrance — held while the brand intro is on screen, then plays */
-.hero-in {
-  animation: hero-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+.hero-bg__image {
+  background-image: url("/hero-digital-infrastructure.svg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
-html.nx-intro-pending .hero-in {
+.hero-bg__overlay {
+  background:
+    linear-gradient(90deg, rgba(2, 8, 20, 0.88) 0%, rgba(2, 10, 25, 0.73) 38%, rgba(2, 12, 29, 0.30) 68%, rgba(2, 10, 22, 0.18) 100%),
+    linear-gradient(0deg, rgba(1, 7, 18, 0.42), transparent 48%);
+}
+.hero-bg-in {
+  animation: hero-bg-in 0.75s ease-out both;
+}
+.hero-in {
+  animation: hero-in 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hero-title-line {
+  display: inline-block;
+  animation: hero-title-in 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+html.nx-intro-pending .hero-bg-in,
+html.nx-intro-pending .hero-in,
+html.nx-intro-pending .hero-title-line {
   animation-play-state: paused;
 }
+@keyframes hero-bg-in {
+  from { opacity: 0; transform: scale(1.025); }
+  to { opacity: 1; transform: scale(1); }
+}
 @keyframes hero-in {
-  from { opacity: 0; transform: translateY(18px); }
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
+}
+@keyframes hero-title-in {
+  from { opacity: 0; filter: blur(4px); transform: translateY(18px); }
+  to { opacity: 1; filter: blur(0); transform: none; }
 }
 .ps-tag { transition: opacity 0.4s ease; }
 .ps-shrunk .ps-tag { opacity: 0 !important; }
+
+/* ------------------------------------------------------------------ */
+/* Full-bleed hero responsive treatment                               */
+/* ------------------------------------------------------------------ */
+@media (max-width: 639px) {
+  .hero-bg__image { background-position: 57% center; }
+  .hero-bg__overlay {
+    background:
+      linear-gradient(90deg, rgba(2, 8, 20, 0.88), rgba(2, 10, 25, 0.64)),
+      linear-gradient(0deg, rgba(1, 7, 18, 0.52), transparent 60%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-in,
+  .hero-in,
+  .hero-title-line {
+    animation: none !important;
+  }
+}

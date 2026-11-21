@@ -15,11 +15,11 @@ function Logo() {
         alt=""
         width="44"
         height="44"
-        className="h-11 w-11 rounded-full transition-transform duration-500 group-hover:rotate-[-12deg]"
+        className="h-10 w-10 rounded-full transition-transform duration-500 group-hover:rotate-[-12deg]"
       />
       <span className="leading-none">
-        <span className="block font-display text-[19px] font-semibold tracking-tight text-white">
-          Nexa<span className="text-primary">Pro</span>
+        <span className="block font-display text-[18px] font-semibold tracking-tight text-white">
+          NexaPro
         </span>
         <span className="mt-1 block font-mono text-[9.5px] uppercase tracking-[0.34em] text-primary-soft/80">
           Technologies
@@ -35,31 +35,28 @@ function MegaColumn({ division, items, onNavigate, tone }) {
       <Link
         to={`/services/${division.slug}`}
         onClick={onNavigate}
-        className="group mb-4 flex items-center justify-between border-b border-line pb-3"
+        className="group mb-2.5 flex items-center justify-between border-b border-line pb-2.5"
       >
         <span>
           <span className={`block font-mono text-[10.5px] uppercase tracking-[0.2em] ${tone}`}>{division.years}</span>
-          <span className="mt-1 block font-display text-[15px] text-white">{division.name}</span>
+          <span className="mt-1 block font-display text-[14px] text-white">{division.name}</span>
         </span>
         <Icon name="arrowUp" className="text-slate-500 transition group-hover:text-primary" />
       </Link>
-      <ul className="grid gap-0.5">
+      <ul className="grid">
         {items.map((s) => (
           <li key={s.slug}>
             <NavLink
               to={`/services/${s.slug}`}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `group flex items-start gap-3 rounded-md px-2.5 py-2 transition-colors hover:bg-white/[0.04] ${
+                `group flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-white/[0.04] ${
                   isActive ? "bg-white/[0.05]" : ""
                 }`
               }
             >
-              <Icon name={s.icon} className="mt-0.5 shrink-0 text-primary/80" />
-              <span>
-                <span className="block text-[14px] text-white">{s.title}</span>
-                <span className="block text-[12.5px] leading-snug text-slate-400">{s.short}</span>
-              </span>
+              <Icon name={s.icon} className="shrink-0 text-primary/80" />
+              <span className="block text-[13px] leading-snug text-white">{s.title}</span>
             </NavLink>
           </li>
         ))}
@@ -126,7 +123,7 @@ export default function Navbar() {
   const solid = scrolled || megaOpen || mobileOpen;
 
   const linkCls = (active) =>
-    `relative px-1 py-2 text-[14px] transition-colors after:absolute after:inset-x-1 after:-bottom-0.5 after:h-px after:origin-left after:bg-primary after:transition-transform after:duration-300 ${
+    `relative px-1 py-2 text-[13.5px] transition-colors after:absolute after:inset-x-1 after:-bottom-0.5 after:h-px after:origin-left after:bg-primary after:transition-transform after:duration-300 ${
       active ? "text-white after:scale-x-100" : "text-slate-300 hover:text-white after:scale-x-0 hover:after:scale-x-100"
     }`;
 
@@ -142,10 +139,10 @@ export default function Navbar() {
       >
         Skip to content
       </a>
-      <nav className="wrap flex h-[76px] items-center justify-between gap-6" aria-label="Main">
+      <nav className="wrap flex h-[72px] items-center justify-between gap-5" aria-label="Main">
         <Logo />
 
-        <ul className="hidden items-center gap-6 xl:flex">
+        <ul className="hidden items-center gap-5 xl:flex">
           {navMain.map((item) =>
             item.mega ? (
               <li key={item.name} ref={megaRef} className="relative" onMouseEnter={openMega} onMouseLeave={scheduleClose}>
@@ -167,21 +164,21 @@ export default function Navbar() {
 
                 <div
                   id="mega-services"
-                  className={`fixed left-1/2 top-[76px] w-[min(1080px,calc(100vw-48px))] -translate-x-1/2 pt-3 transition-all duration-300 ${
+                  className={`fixed left-1/2 top-[72px] w-[min(900px,calc(100vw-48px))] -translate-x-1/2 pt-3 transition-all duration-300 ${
                     megaOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0"
                   }`}
                 >
-                  <div className="grid grid-cols-[1fr_1fr_260px] gap-8 rounded-lg border border-line bg-navy p-7 shadow-lift">
+                  <div className="grid grid-cols-[1fr_1fr_210px] gap-5 rounded-lg border border-line bg-navy p-5 shadow-lift">
                     <MegaColumn division={divisions.legacy} items={legacy} onNavigate={() => setMegaOpen(false)} tone="text-phosphor" />
                     <MegaColumn division={divisions.modern} items={modern} onNavigate={() => setMegaOpen(false)} tone="text-primary" />
-                    <div className="flex flex-col justify-between rounded-md border border-line bg-ink/60 p-5">
+                    <div className="flex flex-col justify-between rounded-md border border-line bg-ink/60 p-4">
                       <div>
                         <p className="eyebrow eyebrow--plain">Not sure where to start?</p>
-                        <p className="mt-3 text-[14px] leading-relaxed text-slate-300">
+                        <p className="mt-2 text-[13px] leading-relaxed text-slate-300">
                           Tell us the problem. We will suggest the right approach — the first consultation is free.
                         </p>
                       </div>
-                      <div className="mt-6 grid gap-2">
+                      <div className="mt-4 grid gap-2">
                         <Link to="/get-a-quote" onClick={() => setMegaOpen(false)} className="btn-primary !py-2.5 !text-[13px]">
                           Get a Free Consultation
                         </Link>
@@ -223,7 +220,7 @@ export default function Navbar() {
       {/* Mobile drawer */}
       <div
         id="mobile-menu"
-        className={`fixed inset-x-0 bottom-0 top-[76px] overflow-y-auto bg-ink transition-[opacity,transform] duration-300 xl:hidden ${
+        className={`fixed inset-x-0 bottom-0 top-[72px] overflow-y-auto bg-ink transition-[opacity,transform] duration-300 xl:hidden ${
           mobileOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"
         }`}
       >

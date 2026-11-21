@@ -28,7 +28,7 @@ export default function Footer() {
             <Link to="/" className="flex items-center gap-3">
               <img src="/logo-circle.png" alt="NexaPro Technologies" width="48" height="48" className="h-12 w-12 rounded-full" loading="lazy" />
               <span className="font-display text-xl text-white">
-                Nexa<span className="text-primary">Pro</span> Technologies
+                NexaPro Technologies
               </span>
             </Link>
             <p className="mt-5 text-[14px] leading-relaxed text-slate-400">{companyInfo.description}</p>

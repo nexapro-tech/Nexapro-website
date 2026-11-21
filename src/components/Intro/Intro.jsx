@@ -63,7 +63,7 @@ export default function Intro() {
           className="mt-7 font-display text-2xl font-semibold tracking-tight text-white sm:text-3xl"
           style={{ animation: "pop-in .8s .25s cubic-bezier(.22,1,.36,1) both" }}
         >
-          Nexa<span className="text-primary">Pro</span>
+          NexaPro
           <span className="ml-2 font-mono text-[11px] font-normal uppercase tracking-[0.32em] text-primary-soft align-middle">
             Technologies
           </span>

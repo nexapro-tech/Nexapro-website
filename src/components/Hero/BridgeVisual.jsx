@@ -5,7 +5,7 @@ import { Bars, Browser, Phone, Tag, Terminal } from "../Visuals/Mini";
  * Hero visual: a legacy IBM i / mainframe screen on one side, modern web and
  * mobile on the other, with NexaPro in the middle moving data between them.
  */
-export default function BridgeVisual() {
+export default function BridgeVisual({ compact = false }) {
   const [motion, setMotion] = useState(true);
   useEffect(() => {
     setMotion(!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
@@ -14,7 +14,7 @@ export default function BridgeVisual() {
   const path = "M28 30 C 38 30, 42 48, 50 50 S 62 70, 72 70";
 
   return (
-    <div className="relative mx-auto h-[420px] w-full max-w-[560px] sm:h-[500px]" aria-hidden="true">
+    <div className={`relative mx-auto w-full ${compact ? "h-[360px] max-w-[520px] sm:h-[430px] lg:h-[460px] lg:mx-0" : "h-[420px] max-w-[560px] sm:h-[500px]"}`} aria-hidden="true">
       {/* rings */}
       <div className="absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/10" />
       <div className="spin-slow absolute left-1/2 top-1/2 h-[58%] w-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-primary/20" />
